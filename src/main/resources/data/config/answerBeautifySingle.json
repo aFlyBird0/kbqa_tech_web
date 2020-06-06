@@ -1,0 +1,32 @@
+[
+    {
+        "aim":"aimWord_paper",
+        "entityType":"researcher",
+        "answerModel":"#{entityValue} 发表了 #{pureAnswer} 等论文"
+    },
+    {
+        "aim":"aimWord_paper",
+        "entityType":"unit",
+        "answerModel":"#{entityValue} 有 #{pureAnswer} 等论文"
+    },
+    {
+        "aim":"aimWord_field",
+        "entityType":"researcher",
+        "answerModel":"#{entityValue} 的研究领域是 #{pureAnswer} "
+    },
+    {
+        "aim":"aimWord_unit_organization",
+        "entityType":"researcher",
+        "answerModel":"#{entityValue} 的单位是 #{pureAnswer} "
+    },
+    {
+        "aim":"aimWord_researcher",
+        "entityType":"unit",
+        "answerModel":"#{entityValue} 有 #{pureAnswer} "
+    },
+    {
+        "aim":"aimWord_journal",
+        "entityType":"paper",
+        "answerModel":"#{entityValue} 发表在 #{pureAnswer} 上"
+    }
+]
