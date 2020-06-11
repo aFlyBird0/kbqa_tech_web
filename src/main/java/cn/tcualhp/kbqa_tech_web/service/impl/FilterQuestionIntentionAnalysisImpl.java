@@ -20,11 +20,10 @@ public class FilterQuestionIntentionAnalysisImpl implements FilterQuestionIntent
     public Map questionAccurateIntentionAnalysis(Map uncleanAnalysisMap, int aimTypeNum) {
         Map resultMap = new HashMap();
         List<String> qsAimList = (List<String>) uncleanAnalysisMap.get("qsAim");
-        String qsAim = qsAimList.get(aimTypeNum-1);
+        String qsAim = qsAimList.get(aimTypeNum);
         resultMap.put("qs", uncleanAnalysisMap.get("qs"));
         resultMap.put("qsEntityTypeList", uncleanAnalysisMap.get("qsEntityTypeList"));
         resultMap.put("qsAim", qsAim);
         return resultMap;
-
     }
 }

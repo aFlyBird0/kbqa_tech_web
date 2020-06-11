@@ -29,17 +29,26 @@ import java.util.Map;
 @Component
 public class BuildCache {
 
-    public static Map<String, List<String>> entityWordMap = null;
-    public static Map<String, List<String>> aimWordMap = null;
-    public static ACFilter acFilterEntity = null;
-    public static ACFilter acFilterAim = null;
-    public static Graph g = null;
-    public static Session session = null;
+    public static Map<String, List<String>> entityWordMap;
+    public static Map<String, List<String>> aimWordMap;
+    public static ACFilter acFilterEntity;
+    public static ACFilter acFilterAim;
+    public static Graph g;
+    public static Session session;
 
     private static String entityDirPath = "/entityWords";
     private static String aimDirPath = "/aimWords";
     private static String graphPath = "data/graph/Neo4jTinyG.txt";
-    private Driver driver = null;
+    private Driver driver;
+
+    // 将英文转化为文字的字典
+    public static Map<String, String> aimExplanation = new HashMap<String, String>(){{
+        put("aimWord_field", "领域");
+        put("aimWord_field", "期刊");
+        put("aimWord_paper", "论文");
+        put("aimWord_researcher", "研究员");
+        put("aimWord_unit_organization", "组织单位");
+    }};
 
     /**
      * 构建实体词的 词典Map & AC过滤器
@@ -85,6 +94,7 @@ public class BuildCache {
         // 本地仓库
 //        driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "Neo4j3350" ) );
         session = driver.session();
+        System.out.println("session: " + session);
     }
 
     /**
@@ -94,6 +104,7 @@ public class BuildCache {
     public void closeNeoconj() {
         session.close();
         driver.close();
+        System.out.println("session 与 driver 已关闭");
     }
 
 
