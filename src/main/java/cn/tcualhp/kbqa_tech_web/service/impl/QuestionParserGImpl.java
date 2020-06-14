@@ -17,7 +17,8 @@ import java.util.*;
 @Service
 public class QuestionParserGImpl implements QuestionParserGService {
 
-    private Graph g = BuildCache.g;
+//    private Graph g = BuildCache.g;
+//    private Graph g = null;
     private String[] aimWords = {"aimWord_field", "aimWord_journal", "aimWord_paper", "aimWord_researcher", "aimWord_unit_organization"};
     private String[] entryWords = {"field", "journal", "paper", "researcher", "unit", "organization"};
     private String[] nodeLabels = {"Keyword", "Journal", "Paper", "Author", "Unit"};
@@ -130,7 +131,7 @@ public class QuestionParserGImpl implements QuestionParserGService {
             else {
                 int start = getIndex(nodeLabels, aimNodeLabel);
                 int end = getIndex(nodeLabels, entryNodeLabel);
-                Iterator<Integer> iterator = BFPshortestPath(g, start, end);
+                Iterator<Integer> iterator = BFPshortestPath(BuildCache.g, start, end);
                 List<Integer> path = new ArrayList<Integer>();
                 while (iterator.hasNext()) {
                     path.add(iterator.next());

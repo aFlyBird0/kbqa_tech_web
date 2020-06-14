@@ -10,6 +10,7 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
+import org.neo4j.register.Register;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -29,27 +30,27 @@ import java.util.Map;
 @Component
 public class BuildCache {
 
-    public static Map<String, List<String>> entityWordMap = null;
-    public static Map<String, List<String>> aimWordMap = null;
-    public static ACFilter acFilterEntity = null;
-    public static ACFilter acFilterAim = null;
-    public static Graph g = null;
-    public static Session session = null;
+    public static Map<String, List<String>> entityWordMap = new HashMap<String, List<String>>();
+    public static Map<String, List<String>> aimWordMap = new HashMap<String, List<String>>();
+    public static ACFilter acFilterEntity = new ACFilter();
+    public static ACFilter acFilterAim = new ACFilter();
+    public static Graph g;
+    public static Session session;
 
     private static String entityDirPath = "/entityWords";
     private static String aimDirPath = "/aimWords";
     private static String graphPath = "data/graph/Neo4jTinyG.txt";
     private Driver driver = null;
 
+
     /**
      * 构建实体词的 词典Map & AC过滤器
      */
     @PostConstruct
     public void entityWordCache() {
-        entityWordMap = new HashMap<String, List<String>>();
         String[] words = readtxtFile(entityDirPath, entityWordMap);
         ACTree acTree = new ACTree(words);
-        acFilterEntity = new ACFilter(acTree);
+        acFilterEntity.setTree(acTree);
     }
 
     /**
@@ -57,10 +58,9 @@ public class BuildCache {
      */
     @PostConstruct
     public void aimWordCache() {
-        aimWordMap = new HashMap<String, List<String>>();
         String[] words = readtxtFile(aimDirPath, aimWordMap);
         ACTree acTree = new ACTree(words);
-        acFilterAim = new ACFilter(acTree);
+        acFilterAim.setTree(acTree);
     }
 
     /**
@@ -80,12 +80,14 @@ public class BuildCache {
      */
     @PostConstruct
     public void connectNeo4j(){
+        System.out.println("建立session会话");
         // 远程仓库
         driver = GraphDatabase.driver( "bolt://120.26.175.63:7687", AuthTokens.basic( "neo4j", "Neo4j" ) );
         // 本地仓库
 //        driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "Neo4j3350" ) );
         session = driver.session();
     }
+
 
     /**
      * 关闭neo4j会话

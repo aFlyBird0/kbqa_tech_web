@@ -12,7 +12,13 @@ public class ACFilter {
 
     private ACTree tree;
 
+    public ACFilter(){};
+
     public ACFilter(ACTree tree) {
+        this.tree = tree;
+    }
+
+    public void setTree(ACTree tree) {
         this.tree = tree;
     }
 
