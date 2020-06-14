@@ -10,11 +10,13 @@ import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,7 +80,15 @@ public class BuildCache {
     @PostConstruct
     public void neo4j2TinyG() {
 //        In in = new In(new File(txtPath));
-        In in = new In(ResourceFileUtil.getResourceFile(graphPath));
+        URL url = null;
+        try {
+            url = new URL("http", "www.tcualhp.cn", 80, "/Neo4jTinyG.txt");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+//        In in = new In(ResourceFileUtil.getResourceFile(graphPath));
+        In in = new In(url);
         g = new Graph(in);
         System.out.println(graphPath);
         System.out.println(g.toString());
@@ -118,34 +128,63 @@ public class BuildCache {
      */
     static String[] readtxtFile(String dirName, Map<String, List<String>> wordsMap) {
         // 引用工具类 读取文件
-        File dir = ResourceFileUtil.getResourceFile("data/" + dirName);
-        if (!dir.exists()) {
-            System.out.println("文件夹不存在");
-            System.exit(0);
-        }
-        File[] txtFiles = dir.listFiles();
-        // 读入文件中的所有实体 Map<String, List<String>>={实体类型=[实体1, 实体2, 实体3, ...]}
-//        wordsMap = new HashMap<String, List<String>>();
+//        File dir = ResourceFileUtil.getResourceFile("data/" + dirName);
+//        if (!dir.exists()) {
+//            System.out.println("文件夹不存在");
+//            System.exit(0);
+//        }
+//        File[] txtFiles = dir.listFiles();
+//        // 读入文件中的所有实体 Map<String, List<String>>={实体类型=[实体1, 实体2, 实体3, ...]}
+////        wordsMap = new HashMap<String, List<String>>();
+//        List<String> allWordsList = new ArrayList<String>(); //包含所有实体的list 用于构造actree
+//        for (File txtFile : txtFiles) {
+//            List<String> wordsList = new ArrayList<String>();
+//            try {
+//                BufferedReader bfReader = new BufferedReader(new FileReader(txtFile));
+//                String word;
+//                while ((word = bfReader.readLine()) != null)
+//                    wordsList.add(word);
+//                bfReader.close();
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            String wordsName = txtFile.getName().substring(0, txtFile.getName().length()-4);
+//            wordsMap.put(wordsName, wordsList);
+//            allWordsList.addAll(wordsList);
+//            // 控制台输出 start
+//            System.out.printf("%-10s%-30s\t%s\n", wordsList.size(),wordsName,wordsList.toString());
+//            // 控制台输出 end
+//        }
         List<String> allWordsList = new ArrayList<String>(); //包含所有实体的list 用于构造actree
-        for (File txtFile : txtFiles) {
-            List<String> wordsList = new ArrayList<String>();
-            try {
-                BufferedReader bfReader = new BufferedReader(new FileReader(txtFile));
+
+        try {
+            Resource[] resources = ResourceFileUtil.getDirResources("/data" + dirName);
+            for (Resource resource: resources){
+                // 读入文件中的所有实体 Map<String, List<String>>={实体类型=[实体1, 实体2, 实体3, ...]}
+//        wordsMap = new HashMap<String, List<String>>();
+                List<String> wordsList = new ArrayList<String>();
+                InputStream inputStream = resource.getInputStream();
                 String word;
-                while ((word = bfReader.readLine()) != null)
+                StringBuilder sb = new StringBuilder();
+                BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
+                while ((word = br.readLine()) != null){
                     wordsList.add(word);
-                bfReader.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
+                }
+                String filename = resource.getFilename();
+                String wordsName = resource.getFilename().substring(0, resource.getFilename().length()-4);
+                wordsMap.put(wordsName, wordsList);
+                allWordsList.addAll(wordsList);
+                // 控制台输出 start
+                System.out.printf("%-10s%-30s\t%s\n", wordsList.size(),wordsName,wordsList.toString());
+                // 控制台输出 end
+
             }
-            String wordsName = txtFile.getName().substring(0, txtFile.getName().length()-4);
-            wordsMap.put(wordsName, wordsList);
-            allWordsList.addAll(wordsList);
-            // 控制台输出 start
-            System.out.printf("%-10s%-30s\t%s\n", wordsList.size(),wordsName,wordsList.toString());
-            // 控制台输出 end
+        }
+        catch (IOException e){
+            System.out.println("读取词典错误");
+            e.printStackTrace();
         }
         // 控制台输出 start
         System.out.printf("%-10s%-30s\t%s\n", allWordsList.size(),"summary",allWordsList.toString());

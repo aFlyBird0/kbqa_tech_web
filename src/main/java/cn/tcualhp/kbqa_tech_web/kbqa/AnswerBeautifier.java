@@ -34,30 +34,37 @@ public class AnswerBeautifier {
     private List<HashMap<String, String>> getAnswerConfigSingle(){
         // 配置的String形式
         String configString = "";
-        File file = ResourceFileUtil.getResourceFile(configPath);
-        BufferedReader reader = null;
+//        File file = ResourceFileUtil.getResourceFile(configPath);
+//        BufferedReader reader = null;
+//        try {
+////            System.out.println("以行为单位读取文件内容，一次读一整行：");
+//            reader = new BufferedReader(new FileReader(file));
+//            String tempString = null;
+//            int line = 1;
+//            // 一次读入一行，直到读入null为文件结束
+//            while ((tempString = reader.readLine()) != null) {
+//                // 显示行号
+////                System.out.println("line " + line + ": " + tempString);
+//                configString += tempString;
+//                line++;
+//            }
+//            reader.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (reader != null) {
+//                try {
+//                    reader.close();
+//                } catch (IOException e1) {
+//                }
+//            }
+//        }
         try {
-//            System.out.println("以行为单位读取文件内容，一次读一整行：");
-            reader = new BufferedReader(new FileReader(file));
-            String tempString = null;
-            int line = 1;
-            // 一次读入一行，直到读入null为文件结束
-            while ((tempString = reader.readLine()) != null) {
-                // 显示行号
-//                System.out.println("line " + line + ": " + tempString);
-                configString += tempString;
-                line++;
-            }
-            reader.close();
-        } catch (IOException e) {
+            configString = ResourceFileUtil.getResourceString(configPath);
+        }
+        catch (Exception e){
+            System.out.println("读取美化器配置失败");
             e.printStackTrace();
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e1) {
-                }
-            }
         }
         // 待返回的配置（数组，字典）
         List answerConfig = JSON.parseArray(configString, HashMap.class);

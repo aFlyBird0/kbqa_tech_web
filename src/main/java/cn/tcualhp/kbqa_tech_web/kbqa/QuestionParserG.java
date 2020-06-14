@@ -4,6 +4,7 @@ import cn.tcualhp.kbqa_tech_web.utils.ResourceFileUtil;
 import edu.princeton.cs.algs4.*;
 
 import java.io.File;
+import java.net.URL;
 import java.util.*;
 
 
@@ -37,7 +38,16 @@ public class QuestionParserG {
     // 构建neo4j数据库的结构映射图
     Graph neo4j2TinyG(String txtPath) {
 //        In in = new In(new File(txtPath));
-        In in = new In(ResourceFileUtil.getResourceFile(txtPath));
+//        In in = new In(ResourceFileUtil.getResourceFile(txtPath));
+        URL url = null;
+        try {
+            url = new URL("http", "www.tcualhp.cn", 80, "/Neo4jTinyG.txt");
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+//        In in = new In(ResourceFileUtil.getResourceFile(graphPath));
+        In in = new In(url);
         Graph g = new Graph(in);
         System.out.println(txtPath);
         System.out.println(g.toString());

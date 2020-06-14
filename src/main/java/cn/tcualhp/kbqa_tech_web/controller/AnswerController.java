@@ -42,18 +42,18 @@ public class AnswerController {
 
     MidResultMap midResultMap = new MidResultMap();
 
+//    @PostMapping(value = "/first")
+//    public Response firstAsk(@RequestBody Map<String, String> map){
+//        String query = map.getOrDefault("query", "");
+//        if (query.isEmpty()){
+//            return new Response().failure("查询不能为空");
+//        }
+//        String answer = answerService.answer(query);
+//        return new Response().success(answer);
+//    }
+
     @PostMapping(value = "/first")
     public Response firstAsk(@RequestBody Map<String, String> map){
-        String query = map.getOrDefault("query", "");
-        if (query.isEmpty()){
-            return new Response().failure("查询不能为空");
-        }
-        String answer = answerService.answer(query);
-        return new Response().success(answer);
-    }
-
-    @PostMapping(value = "/first2")
-    public Response firstAsk2(@RequestBody Map<String, String> map){
         String query = map.getOrDefault("query", "");
         if (query.isEmpty()){
             return new Response().failure("查询不能为空");
