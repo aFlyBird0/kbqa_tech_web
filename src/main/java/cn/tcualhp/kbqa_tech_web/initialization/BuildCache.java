@@ -49,8 +49,10 @@ public class BuildCache {
     // 将英文转化为文字的字典
     public static Map<String, String> aimExplanation = new HashMap<String, String>(){{
         put("aimWord_field", "领域");
-        put("aimWord_field", "期刊");
+        put("aimWord_journal", "期刊");
         put("aimWord_paper", "论文");
+        put("aimWord_patent", "专利");
+        put("aimWord_project", "项目");
         put("aimWord_researcher", "研究员");
         put("aimWord_unit_organization", "组织单位");
     }};
@@ -185,7 +187,7 @@ public class BuildCache {
                 wordsMap.put(wordsName, wordsList);
                 allWordsList.addAll(wordsList);
                 // 控制台输出 start
-                System.out.printf("%-10s%-30s\t%s\n", wordsList.size(),wordsName,wordsList.toString());
+                System.out.printf("%-10s%-30s\t%s\n", wordsList.size(), wordsName, wordsList.size()<50?wordsList.toString():wordsList.subList(0,50).toString());
                 // 控制台输出 end
 
             }
@@ -195,7 +197,7 @@ public class BuildCache {
             e.printStackTrace();
         }
         // 控制台输出 start
-        System.out.printf("%-10s%-30s\t%s\n", allWordsList.size(),"summary",allWordsList.toString());
+        System.out.printf("%-10s%-30s\n", allWordsList.size(),"summary");
         // 控制台输出 end
         String[] words = allWordsList.toArray(new String[allWordsList.size()]); // 将包含所有实体的list转化为String[]
 
