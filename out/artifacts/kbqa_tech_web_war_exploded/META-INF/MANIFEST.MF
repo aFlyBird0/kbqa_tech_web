@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: IntelliJ IDEA
+Built-By: dell
+Build-Jdk: 1.8.0_201
+Implementation-Title: kbqa_tech_web
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: cn.tcualhp
+Main-Class: ${start-class}
+
