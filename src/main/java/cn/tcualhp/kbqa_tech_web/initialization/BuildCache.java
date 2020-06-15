@@ -135,11 +135,11 @@ public class BuildCache {
             wordsMap.put(wordsName, wordsList);
             allWordsList.addAll(wordsList);
             // 控制台输出 start
-            System.out.printf("%-10s%-30s\t%s\n", wordsList.size(),wordsName,wordsList.toString());
+            System.out.printf("%-10s%-30s\t%s\n", wordsList.size(), wordsName, wordsList.size()<50?wordsList.toString():wordsList.subList(0,50).toString());
             // 控制台输出 end
         }
         // 控制台输出 start
-        System.out.printf("%-10s%-30s\t%s\n", allWordsList.size(),"summary",allWordsList.toString());
+        System.out.printf("%-10s%-30s\n", allWordsList.size(),"summary");
         // 控制台输出 end
         String[] words = allWordsList.toArray(new String[allWordsList.size()]); // 将包含所有实体的list转化为String[]
 

@@ -1,28 +1,23 @@
-package cn.tcualhp.kbqa_tech_web.service.impl;
+package cn.tcualhp.kbqa_tech_web.kbqa;
 
-import cn.tcualhp.kbqa_tech_web.initialization.BuildCache;
-import cn.tcualhp.kbqa_tech_web.service.QuestionParserGService;
+import cn.tcualhp.kbqa_tech_web.utils.ResourceFileUtil;
 import edu.princeton.cs.algs4.BreadthFirstPaths;
 import edu.princeton.cs.algs4.Graph;
-import org.springframework.stereotype.Service;
+import edu.princeton.cs.algs4.In;
 
 import java.util.*;
 
-/**
- * @author yukan
- * @description 映射CQL
- * @Date 2020-6-10
- */
 
-@Service
-public class QuestionParserGImpl implements QuestionParserGService {
+public class QuestionParserG4newDatabase {
 
-//    private Graph g = BuildCache.g;
+    private Graph g;
+//    private static String txtPath = System.getProperty("user.dir") + "/src/main/java/Neo4jTinyG.txt";
+    private static String txtPath = "data/graph/Neo4jTinyG.txt";
     private static String[] aimWords = {"aimWord_field", "aimWord_journal", "aimWord_paper", "aimWord_researcher", "aimWord_unit_organization", "aimWord_project", "aimWord_patent"};
     private static String[] entryWords = {"field", "journal", "paper", "researcher", "unit", "organization", "project", "patent"};
     private static String[] nodeLabels = {"Keyword", "Journal", "Paper", "Expert", "Unit", "Project", "Patent"};
     private static String[] nodeAttributes = {"keyword", "journalName", "name", "name", "unit", "name", "name"};
-    private Map<String, String> relationshipMap = new HashMap<String, String>(){{
+    private static Map<String, String> relationshipMap = new HashMap<String, String>(){{
         put("Keyword-Paper", "About_to_Keyword");
         put("Paper-Keyword", "About_to_Keyword");
         put("Keyword-Project", "About_to_Keyword");
@@ -46,16 +41,30 @@ public class QuestionParserGImpl implements QuestionParserGService {
         put("Expert-Patent", "Expert_Of");
     }};
 
+    public QuestionParserG4newDatabase(){
+        g = neo4j2TinyG(txtPath);
+    }
+
+    // 构建neo4j数据库的结构映射图
+    Graph neo4j2TinyG(String txtPath) {
+//        In in = new In(new File(txtPath));
+        In in = new In(ResourceFileUtil.getResourceFile(txtPath));
+        Graph g = new Graph(in);
+        System.out.println(txtPath);
+        System.out.println(g.toString());
+        return g;
+    }
+
     // 广度优先搜索
-    private Iterator<Integer> BFPshortestPath(Graph g, int start, int end) {
+    Iterator<Integer> BFPshortestPath(Graph g, int start, int end) {
         BreadthFirstPaths bfPath = new BreadthFirstPaths(g, start);
         if (!bfPath.hasPathTo(end)) return null;
         Iterator<Integer> path = bfPath.pathTo(end).iterator();
         return path;
     }
 
-    //    四位随机字符组成的String
-    private String randString() {
+//    四位随机字符组成的String
+    static String randString() {
         StringBuffer sb = new StringBuffer("");
         Random rand = new Random();
         char a = (char) (rand.nextInt(26) + 'a');
@@ -66,7 +75,7 @@ public class QuestionParserGImpl implements QuestionParserGService {
         return sb.toString();
     }
 
-    private int search(String[] ss, String key) {
+    static int search(String[] ss, String key) {
         int i=0;
         for (String s:ss) {
             if (key.equals(s)) {
@@ -79,39 +88,39 @@ public class QuestionParserGImpl implements QuestionParserGService {
         return -1;
     }
 
-    private String aimWord2nodeLabel(String aimWord) {
+    static String aimWord2nodeLabel(String aimWord) {
         String nodeLabel = nodeLabels[search(aimWords, aimWord)];
         return nodeLabel;
     }
 
-    private String aimWord2nodeAttribute(String aimWord) {
+    static String aimWord2nodeAttribute(String aimWord) {
         String nodeAttribute = nodeAttributes[search(aimWords, aimWord)];
         return nodeAttribute;
     }
 
-    private String entryWord2nodeLabel(String entryWord) {
+    static String entryWord2nodeLabel(String entryWord) {
         int index = search(entryWords, entryWord);
         if (index == entryWords.length-1) index--;
         String nodeLabel = nodeLabels[index];
         return nodeLabel;
     }
 
-    private String entryWord2nodeAttribute(String entryWord) {
+    static String entryWord2nodeAttribute(String entryWord) {
         int index = search(entryWords, entryWord);
         if (index == entryWords.length-1) index--;
         String nodeAttribute = nodeAttributes[index];
         return nodeAttribute;
     }
 
-    private int getIndex(String[] ss, String s) {
+    static int getIndex(String[] ss, String s) {
         for (int i=0; i<ss.length; i++) {
             if (ss[i].equals(s)) return i;
         }
         return -1;
     }
 
-    @Override
-    public String questionParserG(Map questinAnalysis) {
+    public String questionParser(Map questinAnalysis) {
+
         //构建CQL查询语句
         StringBuffer cql = new StringBuffer("");
         cql.append("MATCH ");
@@ -140,7 +149,7 @@ public class QuestionParserGImpl implements QuestionParserGService {
             else {
                 int start = getIndex(nodeLabels, aimNodeLabel);
                 int end = getIndex(nodeLabels, entryNodeLabel);
-                Iterator<Integer> iterator = BFPshortestPath(BuildCache.g, start, end);
+                Iterator<Integer> iterator = BFPshortestPath(g, start, end);
                 List<Integer> path = new ArrayList<Integer>();
                 while (iterator.hasNext()) {
                     path.add(iterator.next());
@@ -169,4 +178,21 @@ public class QuestionParserGImpl implements QuestionParserGService {
         cql.append("return aim.").append(aimNodeAttrbute).append(" AS answer");
         return cql.toString();
     }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        QuestionIntentionAnalysis qia = new QuestionIntentionAnalysis();
+        QuestionParserG4newDatabase qp = new QuestionParserG4newDatabase();
+        while(true) {
+            System.out.println("请输入问题：");
+//            while(!scanner.hasNext());
+            String qs = scanner.nextLine();
+            if (qs.equals("-1")) {break;}
+//            qia.intentionAnalysis(qs);
+//            System.out.println(qia.intentionAnalysis(qs));
+            System.out.println(qp.questionParser(qia.intentionAnalysis(qs)));
+        }
+        scanner.close();
+    }
+
 }

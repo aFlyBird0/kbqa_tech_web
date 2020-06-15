@@ -16,9 +16,9 @@ public class AnswerSeek {
 
     public AnswerSeek(){
         // 远程仓库
-        Driver driver = GraphDatabase.driver( "bolt://120.26.175.63:7687", AuthTokens.basic( "neo4j", "Neo4j" ) );
+//        Driver driver = GraphDatabase.driver( "bolt://120.26.175.63:7687", AuthTokens.basic( "neo4j", "Neo4j" ) );
         // 本地仓库
-//        driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "Neo4j3350" ) );
+        driver = GraphDatabase.driver( "bolt://localhost:7687", AuthTokens.basic( "neo4j", "Neo4j3350" ) );
         session = driver.session();
     }
 

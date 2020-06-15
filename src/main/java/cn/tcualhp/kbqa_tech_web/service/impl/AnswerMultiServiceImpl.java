@@ -1,28 +1,124 @@
 package cn.tcualhp.kbqa_tech_web.service.impl;
 
 import cn.tcualhp.kbqa_tech_web.initialization.BuildCache;
-import cn.tcualhp.kbqa_tech_web.service.QuestionParserGService;
+import cn.tcualhp.kbqa_tech_web.kbqa.AC.ACFilter;
+import cn.tcualhp.kbqa_tech_web.kbqa.AnswerBeautifier;
+import cn.tcualhp.kbqa_tech_web.service.AnswerMultiService;
 import edu.princeton.cs.algs4.BreadthFirstPaths;
 import edu.princeton.cs.algs4.Graph;
+import javafx.util.Pair;
+import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.v1.StatementResult;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 /**
- * @author yukan
- * @description 映射CQL
- * @Date 2020-6-10
- */
-
+ * @author lihepeng
+ * @description
+ * @date 2020-06-11 16:06
+ **/
 @Service
-public class QuestionParserGImpl implements QuestionParserGService {
+public class AnswerMultiServiceImpl implements AnswerMultiService {
 
-//    private Graph g = BuildCache.g;
+
+
+    public Map questionIntenionAnalysis(String qs) {
+
+        Map<String, List<String>> entityWordMap = BuildCache.entityWordMap;
+        Map<String, List<String>> aimWordMap = BuildCache.aimWordMap;
+        ACFilter acFilterEntity = BuildCache.acFilterEntity;
+        ACFilter acFilterAim = BuildCache.acFilterAim;
+
+        //用一个Map保存一个问题的意图分类结果，包括qs、qsEntityTypeList、qsAim、qsType
+        //即：resultMap = {qs="问题", qsEntityTypeList=[{实体词=[实体词类型1, 实体词类型2, ...]}], qsAim="问题目的"}
+
+        //加入问题原句
+        Map resultMap = new HashMap();
+        resultMap.put("qs", qs);
+
+        // 确定问题目的
+//        String qsAim = null;
+        List<String> qsAimList = new ArrayList<String>();
+        // 通过ac树获取问题目的词 并映射到目的词类别保存在qsAimList中
+        for (String aimWord : acFilterAim.meticulousFilter(acFilterAim.filter(qs))) {
+            for (Map.Entry<String, List<String>> aimWordEntry : aimWordMap.entrySet()) {
+                if (aimWordEntry.getValue().contains(aimWord) && !qsAimList.contains(aimWordEntry.getKey())) { //目的词类型确定 且 还未被加入qsAimList
+                    qsAimList.add(aimWordEntry.getKey());
+                }
+            }
+        }
+        resultMap.put("qsAim", qsAimList);
+//        }
+
+        //过滤出问题中的实体词
+        List<String> qsEntityList = acFilterEntity.meticulousFilter(acFilterEntity.filter(qs));
+        //匹配每个实体词的所属类比
+        List<Map<String, String>> qsEntityTypeList = new ArrayList<Map<String, String>>();
+        for (String entityWord : qsEntityList) {
+            Map<String, String> oneEntityTypeMap = new HashMap<String, String>();
+//            List<String> typeList = new ArrayList<String>();
+            for (Map.Entry<String, List<String>> entityWordEntry : entityWordMap.entrySet()) {
+                if (entityWordEntry.getValue().contains(entityWord)) {
+                    oneEntityTypeMap.put(entityWord, entityWordEntry.getKey());
+                    break;
+                }
+            }
+            qsEntityTypeList.add(oneEntityTypeMap);
+        }
+        resultMap.put("qsEntityTypeList", qsEntityTypeList);
+
+        return resultMap;
+    }
+    @Override
+    public Pair<Boolean, Map> first(String query){
+        // 获取问题分析初步结果
+        Map resultMap = questionIntenionAnalysis(query);
+
+        // 哈希问题结果，作为查询的编号，这样比较简单，而且会话不会重复
+        // 这句放到了Controller里面
+//        String QID = resultMap.hashCode() + "";
+
+        // 判断是否需要二次询问
+        ArrayList<String> aimList = (ArrayList)resultMap.get("qsAim");
+        Boolean reAsk = aimList.size() != 1;
+
+        return new Pair<Boolean, Map>(reAsk, resultMap);
+    }
+
+    private Session session = BuildCache.session;
+
+    @Override
+    public Map questionAccurateIntentionAnalysis(Map uncleanAnalysisMap, int aimTypeNum) {
+        Map resultMap = new HashMap();
+        List<String> qsAimList = (List<String>) uncleanAnalysisMap.get("qsAim");
+        String qsAim = qsAimList.get(aimTypeNum);
+        resultMap.put("qs", uncleanAnalysisMap.get("qs"));
+        resultMap.put("qsEntityTypeList", uncleanAnalysisMap.get("qsEntityTypeList"));
+        resultMap.put("qsAim", qsAim);
+        return resultMap;
+    }
+
+    @Override
+    public String answerSeek(String cql) {
+        StringBuffer stringBuffer = new StringBuffer("");
+        StatementResult result = BuildCache.session.run(cql);
+        while ( result.hasNext() )
+        {
+            Record record = result.next();
+            stringBuffer.append(record.get("answer").asString()).append(" ");
+        }
+        return stringBuffer.toString();
+    }
+
+    private Graph g = BuildCache.g;
     private static String[] aimWords = {"aimWord_field", "aimWord_journal", "aimWord_paper", "aimWord_researcher", "aimWord_unit_organization", "aimWord_project", "aimWord_patent"};
     private static String[] entryWords = {"field", "journal", "paper", "researcher", "unit", "organization", "project", "patent"};
     private static String[] nodeLabels = {"Keyword", "Journal", "Paper", "Expert", "Unit", "Project", "Patent"};
     private static String[] nodeAttributes = {"keyword", "journalName", "name", "name", "unit", "name", "name"};
-    private Map<String, String> relationshipMap = new HashMap<String, String>(){{
+    private static Map<String, String> relationshipMap = new HashMap<String, String>(){{
         put("Keyword-Paper", "About_to_Keyword");
         put("Paper-Keyword", "About_to_Keyword");
         put("Keyword-Project", "About_to_Keyword");
@@ -140,7 +236,7 @@ public class QuestionParserGImpl implements QuestionParserGService {
             else {
                 int start = getIndex(nodeLabels, aimNodeLabel);
                 int end = getIndex(nodeLabels, entryNodeLabel);
-                Iterator<Integer> iterator = BFPshortestPath(BuildCache.g, start, end);
+                Iterator<Integer> iterator = BFPshortestPath(g, start, end);
                 List<Integer> path = new ArrayList<Integer>();
                 while (iterator.hasNext()) {
                     path.add(iterator.next());
@@ -168,5 +264,24 @@ public class QuestionParserGImpl implements QuestionParserGService {
         cql.deleteCharAt(cql.length()-1).append(" ");
         cql.append("return aim.").append(aimNodeAttrbute).append(" AS answer");
         return cql.toString();
+    }
+
+    /**
+     * 根据目的词下标与之前保存的map获取答案
+     * @param aimTypeNum
+     * @param uncleanAnalysisMap
+     * @return java.lang.String
+     * @author lihepeng
+     * @description //TODO
+     * @date 19:48 2020/6/11
+     **/
+    @Override
+    public String getAnswerByAimTypeNum(int aimTypeNum, Map uncleanAnalysisMap){
+        Map oneAimMap = questionAccurateIntentionAnalysis(uncleanAnalysisMap, aimTypeNum);
+        String cql = questionParserG(oneAimMap);
+        String answer = answerSeek(cql);
+        oneAimMap.put("answer", answer);
+        String beatifiedAnswer = new AnswerBeautifier().generateAnswer(oneAimMap);
+        return beatifiedAnswer;
     }
 }

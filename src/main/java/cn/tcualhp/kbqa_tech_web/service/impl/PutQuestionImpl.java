@@ -19,8 +19,10 @@ public class PutQuestionImpl implements PutQuestionService{
 
     private Map<String, String> aimExplanation = new HashMap<String, String>(){{
         put("aimWord_field", "领域");
-        put("aimWord_field", "期刊");
+        put("aimWord_journal", "期刊");
         put("aimWord_paper", "论文");
+        put("aimWord_patent", "专利");
+        put("aimWord_project", "项目");
         put("aimWord_researcher", "研究员");
         put("aimWord_unit_organization", "组织单位");
     }};
