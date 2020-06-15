@@ -1,119 +1,18 @@
-package cn.tcualhp.kbqa_tech_web.service.impl;
+package cn.tcualhp.kbqa_tech_web.kbqa;
 
-import cn.tcualhp.kbqa_tech_web.initialization.BuildCache;
-import cn.tcualhp.kbqa_tech_web.kbqa.AC.ACFilter;
-import cn.tcualhp.kbqa_tech_web.kbqa.AnswerBeautifier;
-import cn.tcualhp.kbqa_tech_web.service.AnswerMultiService;
+import cn.tcualhp.kbqa_tech_web.utils.ResourceFileUtil;
 import edu.princeton.cs.algs4.BreadthFirstPaths;
 import edu.princeton.cs.algs4.Graph;
-import javafx.util.Pair;
-import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
-import org.springframework.stereotype.Service;
+import edu.princeton.cs.algs4.In;
 
 import java.util.*;
 
-/**
- * @author lihepeng
- * @description
- * @date 2020-06-11 16:06
- **/
-@Service
-public class AnswerMultiServiceImpl implements AnswerMultiService {
 
+public class QuestionParserG4newDatabase {
 
-
-    public Map questionIntenionAnalysis(String qs) {
-
-        Map<String, List<String>> entityWordMap = BuildCache.entityWordMap;
-        Map<String, List<String>> aimWordMap = BuildCache.aimWordMap;
-        ACFilter acFilterEntity = BuildCache.acFilterEntity;
-        ACFilter acFilterAim = BuildCache.acFilterAim;
-
-        //用一个Map保存一个问题的意图分类结果，包括qs、qsEntityTypeList、qsAim、qsType
-        //即：resultMap = {qs="问题", qsEntityTypeList=[{实体词=[实体词类型1, 实体词类型2, ...]}], qsAim="问题目的"}
-
-        //加入问题原句
-        Map resultMap = new HashMap();
-        resultMap.put("qs", qs);
-
-        // 确定问题目的
-//        String qsAim = null;
-        List<String> qsAimList = new ArrayList<String>();
-        // 通过ac树获取问题目的词 并映射到目的词类别保存在qsAimList中
-        for (String aimWord : acFilterAim.meticulousFilter(acFilterAim.filter(qs))) {
-            for (Map.Entry<String, List<String>> aimWordEntry : aimWordMap.entrySet()) {
-                if (aimWordEntry.getValue().contains(aimWord) && !qsAimList.contains(aimWordEntry.getKey())) { //目的词类型确定 且 还未被加入qsAimList
-                    qsAimList.add(aimWordEntry.getKey());
-                }
-            }
-        }
-        resultMap.put("qsAim", qsAimList);
-//        }
-
-        //过滤出问题中的实体词
-        List<String> qsEntityList = acFilterEntity.meticulousFilter(acFilterEntity.filter(qs));
-        //匹配每个实体词的所属类比
-        List<Map<String, String>> qsEntityTypeList = new ArrayList<Map<String, String>>();
-        for (String entityWord : qsEntityList) {
-            Map<String, String> oneEntityTypeMap = new HashMap<String, String>();
-//            List<String> typeList = new ArrayList<String>();
-            for (Map.Entry<String, List<String>> entityWordEntry : entityWordMap.entrySet()) {
-                if (entityWordEntry.getValue().contains(entityWord)) {
-                    oneEntityTypeMap.put(entityWord, entityWordEntry.getKey());
-                    break;
-                }
-            }
-            qsEntityTypeList.add(oneEntityTypeMap);
-        }
-        resultMap.put("qsEntityTypeList", qsEntityTypeList);
-
-        return resultMap;
-    }
-    @Override
-    public Pair<Boolean, Map> first(String query){
-        // 获取问题分析初步结果
-        Map resultMap = questionIntenionAnalysis(query);
-
-        // 哈希问题结果，作为查询的编号，这样比较简单，而且会话不会重复
-        // 这句放到了Controller里面
-//        String QID = resultMap.hashCode() + "";
-
-        // 判断是否需要二次询问
-        ArrayList<String> aimList = (ArrayList)resultMap.get("qsAim");
-        Boolean reAsk = aimList.size() != 1;
-
-        return new Pair<Boolean, Map>(reAsk, resultMap);
-    }
-
-    private Session session = BuildCache.session;
-
-    @Override
-    public Map questionAccurateIntentionAnalysis(Map uncleanAnalysisMap, int aimTypeNum) {
-        Map resultMap = new HashMap();
-        List<String> qsAimList = (List<String>) uncleanAnalysisMap.get("qsAim");
-        String qsAim = qsAimList.get(aimTypeNum);
-        resultMap.put("qs", uncleanAnalysisMap.get("qs"));
-        resultMap.put("qsEntityTypeList", uncleanAnalysisMap.get("qsEntityTypeList"));
-        resultMap.put("qsAim", qsAim);
-        return resultMap;
-    }
-
-    @Override
-    public String answerSeek(String cql) {
-        StringBuffer stringBuffer = new StringBuffer("");
-        StatementResult result = BuildCache.session.run(cql);
-        while ( result.hasNext() )
-        {
-            Record record = result.next();
-            stringBuffer.append(record.get("answer").asString()).append(" ");
-        }
-        return stringBuffer.toString();
-    }
-
-//    private Graph g = BuildCache.g;
+    private Graph g;
+//    private static String txtPath = System.getProperty("user.dir") + "/src/main/java/Neo4jTinyG.txt";
+    private static String txtPath = "data/graph/Neo4jTinyG.txt";
     private static String[] aimWords = {"aimWord_field", "aimWord_journal", "aimWord_paper", "aimWord_researcher", "aimWord_unit_organization", "aimWord_project", "aimWord_patent"};
     private static String[] entryWords = {"field", "journal", "paper", "researcher", "unit", "organization", "project", "patent"};
     private static String[] nodeLabels = {"Keyword", "Journal", "Paper", "Expert", "Unit", "Project", "Patent"};
@@ -142,16 +41,30 @@ public class AnswerMultiServiceImpl implements AnswerMultiService {
         put("Expert-Patent", "Expert_Of");
     }};
 
+    public QuestionParserG4newDatabase(){
+        g = neo4j2TinyG(txtPath);
+    }
+
+    // 构建neo4j数据库的结构映射图
+    Graph neo4j2TinyG(String txtPath) {
+//        In in = new In(new File(txtPath));
+        In in = new In(ResourceFileUtil.getResourceFile(txtPath));
+        Graph g = new Graph(in);
+        System.out.println(txtPath);
+        System.out.println(g.toString());
+        return g;
+    }
+
     // 广度优先搜索
-    private Iterator<Integer> BFPshortestPath(Graph g, int start, int end) {
+    Iterator<Integer> BFPshortestPath(Graph g, int start, int end) {
         BreadthFirstPaths bfPath = new BreadthFirstPaths(g, start);
         if (!bfPath.hasPathTo(end)) return null;
         Iterator<Integer> path = bfPath.pathTo(end).iterator();
         return path;
     }
 
-    //    四位随机字符组成的String
-    private String randString() {
+//    四位随机字符组成的String
+    static String randString() {
         StringBuffer sb = new StringBuffer("");
         Random rand = new Random();
         char a = (char) (rand.nextInt(26) + 'a');
@@ -162,7 +75,7 @@ public class AnswerMultiServiceImpl implements AnswerMultiService {
         return sb.toString();
     }
 
-    private int search(String[] ss, String key) {
+    static int search(String[] ss, String key) {
         int i=0;
         for (String s:ss) {
             if (key.equals(s)) {
@@ -175,39 +88,39 @@ public class AnswerMultiServiceImpl implements AnswerMultiService {
         return -1;
     }
 
-    private String aimWord2nodeLabel(String aimWord) {
+    static String aimWord2nodeLabel(String aimWord) {
         String nodeLabel = nodeLabels[search(aimWords, aimWord)];
         return nodeLabel;
     }
 
-    private String aimWord2nodeAttribute(String aimWord) {
+    static String aimWord2nodeAttribute(String aimWord) {
         String nodeAttribute = nodeAttributes[search(aimWords, aimWord)];
         return nodeAttribute;
     }
 
-    private String entryWord2nodeLabel(String entryWord) {
+    static String entryWord2nodeLabel(String entryWord) {
         int index = search(entryWords, entryWord);
         if (index == entryWords.length-1) index--;
         String nodeLabel = nodeLabels[index];
         return nodeLabel;
     }
 
-    private String entryWord2nodeAttribute(String entryWord) {
+    static String entryWord2nodeAttribute(String entryWord) {
         int index = search(entryWords, entryWord);
         if (index == entryWords.length-1) index--;
         String nodeAttribute = nodeAttributes[index];
         return nodeAttribute;
     }
 
-    private int getIndex(String[] ss, String s) {
+    static int getIndex(String[] ss, String s) {
         for (int i=0; i<ss.length; i++) {
             if (ss[i].equals(s)) return i;
         }
         return -1;
     }
 
-    @Override
-    public String questionParserG(Map questinAnalysis) {
+    public String questionParser(Map questinAnalysis) {
+
         //构建CQL查询语句
         StringBuffer cql = new StringBuffer("");
         cql.append("MATCH ");
@@ -236,7 +149,7 @@ public class AnswerMultiServiceImpl implements AnswerMultiService {
             else {
                 int start = getIndex(nodeLabels, aimNodeLabel);
                 int end = getIndex(nodeLabels, entryNodeLabel);
-                Iterator<Integer> iterator = BFPshortestPath(BuildCache.g, start, end);
+                Iterator<Integer> iterator = BFPshortestPath(g, start, end);
                 List<Integer> path = new ArrayList<Integer>();
                 while (iterator.hasNext()) {
                     path.add(iterator.next());
@@ -266,22 +179,20 @@ public class AnswerMultiServiceImpl implements AnswerMultiService {
         return cql.toString();
     }
 
-    /**
-     * 根据目的词下标与之前保存的map获取答案
-     * @param aimTypeNum
-     * @param uncleanAnalysisMap
-     * @return java.lang.String
-     * @author lihepeng
-     * @description //TODO
-     * @date 19:48 2020/6/11
-     **/
-    @Override
-    public String getAnswerByAimTypeNum(int aimTypeNum, Map uncleanAnalysisMap){
-        Map oneAimMap = questionAccurateIntentionAnalysis(uncleanAnalysisMap, aimTypeNum);
-        String cql = questionParserG(oneAimMap);
-        String answer = answerSeek(cql);
-        oneAimMap.put("answer", answer);
-        String beatifiedAnswer = new AnswerBeautifier().generateAnswer(oneAimMap);
-        return beatifiedAnswer;
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        QuestionIntentionAnalysis qia = new QuestionIntentionAnalysis();
+        QuestionParserG4newDatabase qp = new QuestionParserG4newDatabase();
+        while(true) {
+            System.out.println("请输入问题：");
+//            while(!scanner.hasNext());
+            String qs = scanner.nextLine();
+            if (qs.equals("-1")) {break;}
+//            qia.intentionAnalysis(qs);
+//            System.out.println(qia.intentionAnalysis(qs));
+            System.out.println(qp.questionParser(qia.intentionAnalysis(qs)));
+        }
+        scanner.close();
     }
+
 }
