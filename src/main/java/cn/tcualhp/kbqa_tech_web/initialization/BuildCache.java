@@ -43,6 +43,9 @@ public class BuildCache {
     private static String graphPath = "data/graph/Neo4jTinyG.txt";
     private Driver driver;
 
+    // 所有的文件读取信息，用来测试部署的时候读取情况
+    public static Map<String, Object> allFilesInfo = new HashMap<String, Object>() ;
+
     // 将英文转化为文字的字典
     public static Map<String, String> aimExplanation = new HashMap<String, String>(){{
         put("aimWord_field", "领域");
@@ -63,6 +66,8 @@ public class BuildCache {
         String[] words = readtxtFile(entityDirPath, entityWordMap);
         ACTree acTree = new ACTree(words);
         acFilterEntity = new ACFilter(acTree);
+        // 测试
+        allFilesInfo.put("entityWords", entityWordMap);
     }
 
     /**
@@ -74,6 +79,8 @@ public class BuildCache {
         String[] words = readtxtFile(aimDirPath, aimWordMap);
         ACTree acTree = new ACTree(words);
         acFilterAim = new ACFilter(acTree);
+        // 测试
+        allFilesInfo.put("aimWords", aimWordMap);
     }
 
     /**
@@ -173,6 +180,7 @@ public class BuildCache {
                 BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
                 while ((word = br.readLine()) != null){
                     wordsList.add(word);
+//                    System.out.println("word:" + word);
                 }
                 String filename = resource.getFilename();
                 String wordsName = resource.getFilename().substring(0, resource.getFilename().length()-4);

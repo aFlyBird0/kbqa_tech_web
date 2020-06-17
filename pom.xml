@@ -12,7 +12,7 @@
     <artifactId>kbqa_tech_web</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>kbqa_tech_web</name>
-    <description>Demo project for Spring Boot</description>
+    <description>创新实践智能问答后端</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -73,6 +73,38 @@
             <artifactId>neo4j</artifactId>
             <version>3.1.1</version>
         </dependency>
+        <dependency>
+            <!--groupId随意填写，其他引入时候会自动匹配版本-->
+            <groupId>edu.princeton</groupId>
+            <artifactId>cs</artifactId>
+<!--            <scope>system</scope>-->
+            <version>1</version>
+<!--            <systemPath>${project.basedir}/src/main/resources/lib/algs4/algs4.jar</systemPath>-->
+        </dependency>
+        <dependency>
+            <!--groupId随意填写，其他引入时候会自动匹配版本-->
+            <groupId>cn.tcualhp</groupId>
+            <artifactId>kbqa_tech_web</artifactId>
+            <scope>system</scope>
+            <version>1</version>
+            <systemPath>${project.basedir}/src/main/resources/lib/commons-lang/commons-lang-2.6-javadoc.jar</systemPath>
+        </dependency>
+        <dependency>
+            <!--groupId随意填写，其他引入时候会自动匹配版本-->
+            <groupId>cn.tcualhp</groupId>
+            <artifactId>kbqa_tech_web</artifactId>
+            <scope>system</scope>
+            <version>1</version>
+            <systemPath>${project.basedir}/src/main/resources/lib/commons-lang/commons-lang-2.6-sources.jar</systemPath>
+        </dependency>
+        <dependency>
+            <!--groupId随意填写，其他引入时候会自动匹配版本-->
+            <groupId>cn.tcualhp</groupId>
+            <artifactId>kbqa_tech_web</artifactId>
+            <scope>system</scope>
+            <version>1</version>
+            <systemPath>${project.basedir}/src/main/resources/lib/commons-lang/commons-lang-2.6.jar</systemPath>
+        </dependency>
     </dependencies>
 
 
@@ -81,8 +113,22 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                    <jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>
+                </configuration>
             </plugin>
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <!--包含文件夹以及子文件夹下所有资源-->
+                    <include>**/*.*</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 
 </project>
