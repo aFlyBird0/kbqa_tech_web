@@ -7,8 +7,8 @@ import java.util.Scanner;
 public class chatbot {
 
     public static void main(String[] args) {
-        QuestionIntentionAnalysis qia = new QuestionIntentionAnalysis();
-        QuestionParserG qpg = new QuestionParserG();
+        QuestionIntentionAnalysis4newDatabase qia = new QuestionIntentionAnalysis4newDatabase();
+        QuestionParserG4newDatabase qpg = new QuestionParserG4newDatabase();
         AnswerSeek as = new AnswerSeek();
 
         Scanner scanner = new Scanner(System.in);
