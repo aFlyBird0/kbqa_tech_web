@@ -178,6 +178,7 @@ public class QuestionParserG4newDatabase {
         cql.append("return aim.").append(aimNodeAttrbute).append(" AS answer");
         String CQL;
         if(aimNodeAttrbute.equals("keyword")) {CQL = cql.toString().replace("Project", "Paper");}
+        else if(aimNodeLabel.equals("Expert")) {CQL = cql.toString().replace("Project", "Paper");}
         else {CQL = cql.toString();}
         return CQL;
     }
