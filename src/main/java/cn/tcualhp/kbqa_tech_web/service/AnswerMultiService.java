@@ -1,6 +1,7 @@
 package cn.tcualhp.kbqa_tech_web.service;
 
-import javafx.util.Pair;
+
+import cn.tcualhp.kbqa_tech_web.common.Pair;
 
 import java.util.Map;
 

@@ -48,7 +48,7 @@ public class AnswerSeek {
             Record record = result.next();
             stringBuffer.append(record.get("answer").asString()).append(" ");
         }
-        System.out.println(stringBuffer.toString());
+//        System.out.println(stringBuffer.toString());
         session.close();
         driver.close();
     }

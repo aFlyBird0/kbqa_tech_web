@@ -1,11 +1,11 @@
 package cn.tcualhp.kbqa_tech_web.controller;
 
+import cn.tcualhp.kbqa_tech_web.common.Pair;
 import cn.tcualhp.kbqa_tech_web.common.Response;
 import cn.tcualhp.kbqa_tech_web.initialization.BuildCache;
 import cn.tcualhp.kbqa_tech_web.kbqa.MidResultMap;
 import cn.tcualhp.kbqa_tech_web.service.*;
 import cn.tcualhp.kbqa_tech_web.service.impl.AnswerMultiServiceImpl;
-import javafx.util.Pair;
 import org.neo4j.cypher.internal.frontend.v2_3.ast.Return;
 import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,18 +24,6 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/QA")
 public class AnswerController {
-
-    @Autowired
-    AnswerService answerService;
-
-    @Autowired
-    QuestionIntentionAnalysisService questionIntentionAnalysisService;
-
-    @Autowired
-    PutQuestionService putQuestionService;
-
-    @Autowired
-    FilterQuestionIntentionAnalysisService filterQuestionIntentionAnalysisService;
 
     @Autowired
     AnswerMultiService answerMultiService;

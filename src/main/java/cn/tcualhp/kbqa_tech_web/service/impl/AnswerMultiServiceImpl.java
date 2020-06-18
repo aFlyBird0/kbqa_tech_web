@@ -1,13 +1,12 @@
 package cn.tcualhp.kbqa_tech_web.service.impl;
 
+import cn.tcualhp.kbqa_tech_web.common.Pair;
 import cn.tcualhp.kbqa_tech_web.initialization.BuildCache;
 import cn.tcualhp.kbqa_tech_web.kbqa.AC.ACFilter;
 import cn.tcualhp.kbqa_tech_web.kbqa.AnswerBeautifier;
 import cn.tcualhp.kbqa_tech_web.service.AnswerMultiService;
 import edu.princeton.cs.algs4.BreadthFirstPaths;
 import edu.princeton.cs.algs4.Graph;
-import javafx.util.Pair;
-import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.Str;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
