@@ -262,7 +262,10 @@ public class AnswerMultiServiceImpl implements AnswerMultiService {
         }
         cql.deleteCharAt(cql.length()-1).append(" ");
         cql.append("return aim.").append(aimNodeAttrbute).append(" AS answer");
-        return cql.toString();
+        String CQL;
+        if(aimNodeAttrbute.equals("keyword")) {CQL = cql.toString().replace("Project", "Paper");}
+        else {CQL = cql.toString();}
+        return CQL;
     }
 
     /**
